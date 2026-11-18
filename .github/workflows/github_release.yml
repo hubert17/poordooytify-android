@@ -1,6 +1,7 @@
 name: Github Release Workflow
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - 'v*'
