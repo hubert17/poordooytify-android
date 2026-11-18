@@ -145,3 +145,31 @@ Rules:
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
 - After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+
+## Fork Sync & Branding Rules (Poordooytify)
+
+This repository (`hubert17/poordooytify-android`) is a fork of `eddyizm/tempus` (`upstream`). When syncing from `upstream` or resolving merge conflicts:
+
+1. **Preserve Fork Branding, Icon & App ID**:
+   - Keep `<string name="app_name">Poordooytify</string>` across `app/src/main/res/values*/strings.xml`.
+   - Keep `tempus` flavor's `applicationId = 'com.hubert17.poordooytify'` in `app/build.gradle` so it installs side-by-side with official Tempus.
+   - Keep the custom Poordooytify icon & logo drawables:
+     - `app/src/main/res/drawable/ic_launcher_background.xml`
+     - `app/src/main/res/drawable/ic_launcher_foreground.xml`
+     - `app/src/main/res/drawable/ic_launcher_monochrome.xml`
+     - `app/src/main/res/drawable/ic_splash_logo.xml`
+     - `app/src/main/res/drawable/logo.xml`
+2. **Preserve Minimalist Fixed-Server Login Flow**:
+   - Keep `default_server_url` (`https://music.bernardgabon.com`) and login strings in `app/src/main/res/values/strings.xml`.
+   - Keep the minimalist login screen & fixed-server logic in `app/src/main/res/layout/fragment_login.xml` and `app/src/main/java/com/eddyizm/tempus/ui/fragment/LoginFragment.java`.
+   - Keep `Github.java` pointing to `hubert17/poordooytify-android`, `SubsonicPreferences.java` `clientName = "Poordooytify"`, `settings_github_link` in `strings.xml`, and no `LoginActivity` launcher shortcut in `MainActivity.java`.
+3. **Preserve Tempus-Only CI Workflows**:
+   - Keep `.github/workflows/github_release.yml` and `.github/workflows/github_prerelease.yml` configured to build, sign, and publish **only** the `tempus` flavor (Android Auto + Chromecast support), without re-introducing `degoogled` or `play` workflow steps.
+4. **Flag & Ask on Conflicts/Overwrites**:
+   - Never silently overwrite fork customizations (`app_name`, `default_server_url`, `settings_github_link`, `tempus` `applicationId`, the icon/logo drawables listed above, `fragment_login.xml`, `LoginFragment.java`, `Github.java`, `SubsonicPreferences.java`, `MainActivity.java` shortcut removal, `.github/workflows/github_release.yml`, `.github/workflows/github_prerelease.yml`, or `AGENTS.md` itself).
+   - If an `upstream` sync introduces a merge conflict or upstream change affecting any of these files (or `app/build.gradle` / `strings.xml`), **stop, flag the affected lines, and ask the user** how to proceed before finalizing the merge.
+
+## Git Push & Release Tag Workflow (Poordooytify)
+
+- **`"git push"`**: Push commits to `origin main` only (`git push origin main`). Do **not** create or push any `v*` release tags.
+- **`"git push tag release"`**: Push `main` to `origin` **and** create/push a `v*` release tag (e.g., `v4.32.0` or the next version tag, matching `versionName` in `app/build.gradle`) to `origin` so `.github/workflows/github_release.yml` runs and publishes `app-tempus-release.apk`.

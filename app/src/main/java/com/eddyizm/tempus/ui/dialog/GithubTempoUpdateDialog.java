@@ -48,8 +48,7 @@ public class GithubTempoUpdateDialog extends DialogFragment {
                 .setView(bind.getRoot())
                 .setTitle(R.string.github_update_dialog_title)
                 .setPositiveButton(R.string.github_update_dialog_positive_button, (dialog, id) -> { })
-                .setNegativeButton(R.string.github_update_dialog_negative_button, (dialog, id) -> { })
-                .setNeutralButton(R.string.github_update_dialog_neutral_button, (dialog, id) -> { });
+                .setNegativeButton(R.string.github_update_dialog_negative_button, (dialog, id) -> { });
 
         return builder.create();
     }
@@ -82,13 +81,6 @@ public class GithubTempoUpdateDialog extends DialogFragment {
 
         alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(v -> {
             Preferences.setTempusUpdateReminder();
-            if (getDialog() != null) {
-                getDialog().dismiss();
-            }
-        });
-
-        alertDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
-            openLink(getString(R.string.support_url));
             if (getDialog() != null) {
                 getDialog().dismiss();
             }

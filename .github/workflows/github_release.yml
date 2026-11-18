@@ -32,43 +32,17 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Build All Release APKs
+      - name: Build Tempus Release APK
         id: build
         run: |
           sed -ri '/org.gradle.toolchains.foojay-resolver-convention/d' settings.gradle
           bash ./gradlew assembleTempusRelease
-          bash ./gradlew assembleDegoogledRelease
-          bash ./gradlew bundlePlayRelease
 
       - name: Sign Tempus Release APKs
         id: sign_tempus_release
         uses: r0adkll/sign-android-release@v1
         with:
           releaseDirectory: app/build/outputs/apk/tempus/release
-          signingKeyBase64: ${{ secrets.KEYSTORE_BASE64 }}
-          alias: ${{ secrets.KEY_ALIAS_GITHUB }}
-          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD_GITHUB }}
-        env:
-          BUILD_TOOLS_VERSION: "36.0.0"
-
-      - name: Sign Degoogled Release APKs
-        id: sign_degoogled_release
-        uses: r0adkll/sign-android-release@v1
-        with:
-          releaseDirectory: app/build/outputs/apk/degoogled/release
-          signingKeyBase64: ${{ secrets.KEYSTORE_BASE64 }}
-          alias: ${{ secrets.KEY_ALIAS_GITHUB }}
-          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD_GITHUB }}
-        env:
-          BUILD_TOOLS_VERSION: "34.0.0"
-
-      - name: Sign Play Release AAB
-        id: sign_play_release
-        uses: r0adkll/sign-android-release@v1
-        with:
-          releaseDirectory: app/build/outputs/bundle/playRelease
           signingKeyBase64: ${{ secrets.KEYSTORE_BASE64 }}
           alias: ${{ secrets.KEY_ALIAS_GITHUB }}
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -84,23 +58,13 @@ jobs:
             mv "$file" "$new_name"
           done
 
-          # Rename Degoogled signed APKs
-          for file in app/build/outputs/apk/degoogled/release/*-signed.apk; do
-            new_name=$(echo "$file" | sed 's/-unsigned-signed\.apk$/.apk/' | sed 's/-signed\.apk$/.apk/')
-            mv "$file" "$new_name"
-          done
-
       - name: Rename Mapping Files
         run: |
           mv -v app/build/outputs/mapping/tempusRelease/mapping.txt app/build/outputs/mapping/tempusRelease/mapping_Tempus.txt
-          mv -v app/build/outputs/mapping/degoogledRelease/mapping.txt app/build/outputs/mapping/degoogledRelease/mapping_Degoogled.txt
-          mv -v app/build/outputs/mapping/playRelease/mapping.txt app/build/outputs/mapping/playRelease/mapping_Play.txt
 
       - name: Compress Mapping Files
         run: |
           gzip -v app/build/outputs/mapping/tempusRelease/mapping_Tempus.txt
-          gzip -v app/build/outputs/mapping/degoogledRelease/mapping_Degoogled.txt
-          gzip -v app/build/outputs/mapping/playRelease/mapping_Play.txt
 
       - name: Create Release
         id: create_release
@@ -109,12 +73,8 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
           generate_release_notes: true
-          draft: true
+          draft: false
           prerelease: false
           files: |
             app/build/outputs/apk/tempus/release/*-release.apk
-            app/build/outputs/apk/degoogled/release/*-release.apk
             app/build/outputs/mapping/tempusRelease/mapping_Tempus.txt.gz
-            app/build/outputs/mapping/degoogledRelease/mapping_Degoogled.txt.gz
-            app/build/outputs/bundle/playRelease/*-release.aab
-            app/build/outputs/mapping/playRelease/mapping_Play.txt.gz

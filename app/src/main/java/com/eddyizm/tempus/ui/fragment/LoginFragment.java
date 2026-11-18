@@ -1,14 +1,12 @@
 package com.eddyizm.tempus.ui.fragment;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -19,14 +17,10 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.util.UnstableApi;
-import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.eddyizm.tempus.App;
 import com.eddyizm.tempus.R;
-import com.eddyizm.tempus.ui.login.LoginActivity;
-import com.eddyizm.tempus.ui.adapter.ServerAdapter;
 import com.eddyizm.tempus.databinding.FragmentLoginBinding;
-import com.eddyizm.tempus.interfaces.ClickCallback;
 import com.eddyizm.tempus.interfaces.SystemCallback;
 import com.eddyizm.tempus.model.Server;
 import com.eddyizm.tempus.repository.PlaylistRepository;
@@ -36,41 +30,25 @@ import com.eddyizm.tempus.util.Preferences;
 import com.eddyizm.tempus.viewmodel.LoginViewModel;
 
 @UnstableApi
-public class LoginFragment extends Fragment implements ClickCallback {
-    private static final String TAG = "LoginFragment";
+public class LoginFragment extends Fragment {
+    private static final String DEFAULT_SERVER_ID = "poordooytify_default_server";
 
     private FragmentLoginBinding bind;
     private MainActivity activity;
     private LoginViewModel loginViewModel;
 
-    private ServerAdapter serverAdapter;
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
-    }
-
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.login_page_menu, menu);
-    }
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         activity = (MainActivity) getActivity();
-
         loginViewModel = new ViewModelProvider(requireActivity()).get(LoginViewModel.class);
         bind = FragmentLoginBinding.inflate(inflater, container, false);
-        View view = bind.getRoot();
 
-        initAppBar();
-        initServerListView();
-        initNewLoginButton();
+        applySystemInsets();
+        prefillUsername();
+        setupActions();
 
-        return view;
+        return bind.getRoot();
     }
 
     @Override
@@ -79,85 +57,72 @@ public class LoginFragment extends Fragment implements ClickCallback {
         bind = null;
     }
 
-    private void initAppBar() {
-        activity.setSupportActionBar(bind.toolbar);
-
-        bind.appBarLayout.addOnOffsetChangedListener((appBarLayout, verticalOffset) -> {
-            if (bind == null) return;
-
-            if ((bind.serverInfoSector.getHeight() + verticalOffset) < (2 * ViewCompat.getMinimumHeight(bind.toolbar))) {
-                bind.toolbar.setTitle(R.string.login_title);
-            } else {
-                bind.toolbar.setTitle(R.string.empty_string);
-            }
-        });
-    }
-
-    private void initServerListView() {
-        bind.serverListRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        bind.serverListRecyclerView.setHasFixedSize(true);
-
-        serverAdapter = new ServerAdapter(this);
-        bind.serverListRecyclerView.setAdapter(serverAdapter);
-        loginViewModel.getServerList().observe(getViewLifecycleOwner(), servers -> {
-            if (!servers.isEmpty()) {
-                if (bind != null) bind.noServerAddedTextView.setVisibility(View.GONE);
-                if (bind != null) bind.serverListRecyclerView.setVisibility(View.VISIBLE);
-                serverAdapter.setItems(servers);
-            } else {
-                if (bind != null) bind.noServerAddedTextView.setVisibility(View.VISIBLE);
-                if (bind != null) bind.serverListRecyclerView.setVisibility(View.GONE);
-            }
-        });
-    }
-
-    public void initNewLoginButton() {
-
-        /* Edge-to-edge fixup */
-        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) bind.newLoginButton.getLayoutParams();
-        final int baseBottomMargin = params.bottomMargin;
-        ViewCompat.setOnApplyWindowInsetsListener(bind.newLoginButton, (v, windowInsets) -> {
-            Insets systemInsets = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars());
-            params.bottomMargin = baseBottomMargin + systemInsets.bottom;
-            v.setLayoutParams(params);
+    private void applySystemInsets() {
+        final int baseTop = bind.loginContainer.getPaddingTop();
+        final int baseBottom = bind.loginContainer.getPaddingBottom();
+        ViewCompat.setOnApplyWindowInsetsListener(bind.loginContainer, (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.ime());
+            v.setPadding(v.getPaddingLeft(), baseTop + insets.top, v.getPaddingRight(), baseBottom + insets.bottom);
             return windowInsets;
         });
-
-        /* Setup button */
-        bind.newLoginButton.setOnClickListener(v -> {
-            Intent tempus = new Intent(requireActivity(), LoginActivity.class);
-            tempus.putExtra("HIDE_TAB_LAYOUT", true);
-            tempus.putExtra("HIDE_TOPAPPBAR_LAYOUT", false);
-            tempus.putExtra("SELECT_FRAGMENT", 3);
-            startActivity(tempus);
-        });
     }
 
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.action_login) {
-            Intent tempus = new Intent(requireActivity(), LoginActivity.class);
-            tempus.putExtra("HIDE_TAB_LAYOUT", false);
-            tempus.putExtra("HIDE_TOPAPPBAR_LAYOUT", true);
-            tempus.putExtra("SELECT_FRAGMENT", 0);
-            startActivity(tempus);
-            return true;
+    private void prefillUsername() {
+        String savedUser = Preferences.getUser();
+        if (!TextUtils.isEmpty(savedUser)) {
+            bind.usernameField.setText(savedUser);
+        }
+    }
+
+    private void setupActions() {
+        bind.passwordField.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                attemptLogin();
+                return true;
+            }
+            return false;
+        });
+
+        bind.signInButton.setOnClickListener(v -> attemptLogin());
+    }
+
+    private void attemptLogin() {
+        if (bind == null) return;
+
+        String username = bind.usernameField.getText() != null
+                ? bind.usernameField.getText().toString().trim()
+                : "";
+        String password = bind.passwordField.getText() != null
+                ? bind.passwordField.getText().toString()
+                : "";
+
+        bind.usernameFieldContainer.setError(null);
+        bind.passwordFieldContainer.setError(null);
+
+        if (TextUtils.isEmpty(username)) {
+            bind.usernameFieldContainer.setError(getString(R.string.login_missing_credentials));
+            bind.usernameField.requestFocus();
+            return;
         }
 
-        return false;
-    }
+        if (TextUtils.isEmpty(password)) {
+            bind.passwordFieldContainer.setError(getString(R.string.login_missing_credentials));
+            bind.passwordField.requestFocus();
+            return;
+        }
 
-    @Override
-    public void onServerClick(Bundle bundle) {
-        Server server = bundle.getParcelable("server_object");
-        saveServerPreference(server.getServerId(), server.getAddress(), server.getLocalAddress(), server.getUsername(), server.getPassword(), server.isLowSecurity(), server.getClientCert(), server.getCustomHeaders());
+        String serverUrl = getString(R.string.default_server_url);
+        setLoading(true);
+        saveServerPreference(serverUrl, username, password);
 
         SystemRepository systemRepository = new SystemRepository();
         systemRepository.checkUserCredential(new SystemCallback() {
             @Override
             public void onError(Exception exception) {
-                Preferences.switchInUseServerAddress();
                 resetServerPreference();
+                if (bind != null) {
+                    setLoading(false);
+                }
 
                 Context context = getContext();
                 if (context != null && isAdded()) {
@@ -166,30 +131,44 @@ public class LoginFragment extends Fragment implements ClickCallback {
             }
 
             @Override
-            public void onSuccess(String password, String token, String salt) {
+            public void onSuccess(String resolvedPassword, String token, String salt) {
+                loginViewModel.addServer(new Server(
+                        DEFAULT_SERVER_ID,
+                        getString(R.string.app_name),
+                        username,
+                        resolvedPassword != null ? resolvedPassword : password,
+                        serverUrl,
+                        null,
+                        System.currentTimeMillis(),
+                        false,
+                        null,
+                        null
+                ));
                 new PlaylistRepository().refreshAllPlaylists();
-                activity.goFromLogin();
+                if (activity != null && isAdded()) {
+                    activity.goFromLogin();
+                }
             }
         });
     }
 
-    private void saveServerPreference(String serverId, String server, String localAddress, String user, String password, boolean isLowSecurity, String clientCert, String customHeaders) {
-        // Written only when the stored address belongs to another server. Tapping the same one
-        // again has to keep the flip onError made, which is how a second attempt reaches the local
-        // address. The server id cannot be the test, because onError clears it.
-        String inUseAddress = Preferences.getInUseServerAddress();
-        boolean addressIsThisServers = java.util.Objects.equals(inUseAddress, server)
-                || java.util.Objects.equals(inUseAddress, localAddress);
+    private void setLoading(boolean loading) {
+        bind.signInButton.setEnabled(!loading);
+        bind.signInButton.setText(loading ? R.string.login_signing_in : R.string.login_sign_in_button);
+        bind.usernameField.setEnabled(!loading);
+        bind.passwordField.setEnabled(!loading);
+    }
 
-        Preferences.setServerId(serverId);
-        Preferences.setServer(server);
-        Preferences.setLocalAddress(localAddress);
-        if (!addressIsThisServers) Preferences.setInUseServerAddress(server);
+    private void saveServerPreference(String serverUrl, String user, String password) {
+        Preferences.setServerId(DEFAULT_SERVER_ID);
+        Preferences.setServer(serverUrl);
+        Preferences.setLocalAddress(null);
+        Preferences.setInUseServerAddress(serverUrl);
         Preferences.setUser(user);
         Preferences.setPassword(password);
-        Preferences.setLowSecurity(isLowSecurity);
-        Preferences.setClientCert(clientCert);
-        Preferences.setCustomHeaders(customHeaders);
+        Preferences.setLowSecurity(false);
+        Preferences.setClientCert(null);
+        Preferences.setCustomHeaders(null);
 
         App.getSubsonicClientInstance(true);
     }

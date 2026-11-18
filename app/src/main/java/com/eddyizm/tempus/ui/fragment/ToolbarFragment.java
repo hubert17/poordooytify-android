@@ -186,17 +186,17 @@ public class ToolbarFragment extends Fragment {
         boolean canChoose = musicFolders.size() > 1 || Preferences.getActiveMusicFolderId() != null;
         boolean visible = canChoose && isLibraryScopedScreen() && isLibraryScopedTab();
 
-        // Podcast and Radio are the tabs the library never reaches, so the line carries the
-        // server instead of nothing. No caret there, since nothing is tappable.
-        boolean showServerName = !visible && serverName != null && isLibraryScopedScreen();
+        // Subtitle shows the current logged-in username when no multi-library filter is active.
+        String currentUser = Preferences.getUser();
+        boolean showUserSubtitle = !visible && currentUser != null && !currentUser.isEmpty() && isLibraryScopedScreen();
 
         bind.toolbarTitleContainer.setClickable(visible);
-        bind.toolbarMusicLibraryTextView.setVisibility(visible || showServerName ? View.VISIBLE : View.GONE);
+        bind.toolbarMusicLibraryTextView.setVisibility(visible || showUserSubtitle ? View.VISIBLE : View.GONE);
         bind.toolbarMusicLibraryTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(
                 0, 0, visible ? R.drawable.ic_expand_more_small : 0, 0);
 
-        if (showServerName) {
-            bind.toolbarMusicLibraryTextView.setText(serverName);
+        if (showUserSubtitle) {
+            bind.toolbarMusicLibraryTextView.setText(currentUser);
             return;
         }
 

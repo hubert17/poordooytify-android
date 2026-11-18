@@ -1258,7 +1258,7 @@ object Preferences {
 
     @JvmStatic
     fun isDynamicColorAccent(): Boolean {
-        return App.getInstance().preferences.getBoolean(DYNAMIC_COLOR_ACCENT, true)
+        return App.getInstance().preferences.getBoolean(DYNAMIC_COLOR_ACCENT, false)
     }
 
     @JvmStatic
@@ -1278,7 +1278,7 @@ object Preferences {
 
     @JvmStatic
     fun getColorAccent(): String {
-        return App.getInstance().preferences.getString(COLOR_ACCENT, "DYNAMIC") ?: "DYNAMIC"
+        return App.getInstance().preferences.getString(COLOR_ACCENT, "HEX:#22C57E") ?: "HEX:#22C57E"
     }
 
     @JvmStatic

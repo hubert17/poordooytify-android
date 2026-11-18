@@ -1139,7 +1139,7 @@ public class SettingsContainerFragment extends PreferenceFragmentCompat {
     private void actionSettingsBackup() {
         findPreference("settings_export").setOnPreferenceClickListener(preference -> {
             String date = new java.text.SimpleDateFormat("yyyyMMdd", Locale.US).format(new java.util.Date());
-            settingsExportLauncher.launch("tempus-settings-" + date + ".json");
+            settingsExportLauncher.launch("poordooytify-settings-" + date + ".json");
             return true;
         });
         findPreference("settings_import").setOnPreferenceClickListener(preference -> {

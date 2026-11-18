@@ -15,8 +15,8 @@ android {
         //noinspection OldTargetApi
         targetSdk = 37
 
-        versionCode 53
-        versionName '4.32.0'
+        versionCode 54
+        versionName '4.32.0-poordooytify.1'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 
         javaCompileOptions {
@@ -54,7 +54,7 @@ android {
     productFlavors {
         tempus {
             dimension = "default"
-            applicationId = 'com.eddyizm.tempus'
+            applicationId = 'com.hubert17.poordooytify'
         }
 
         degoogled {
