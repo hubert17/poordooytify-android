@@ -51,21 +51,20 @@ jobs:
         env:
           BUILD_TOOLS_VERSION: "36.0.0"
 
-      - name: Rename Signed APKs to match local pattern
+      - name: Rename Signed APK to Poordooytify
         run: |
-          # Rename Tempus signed APKs
           for file in app/build/outputs/apk/tempus/release/*-signed.apk; do
-            new_name=$(echo "$file" | sed 's/-unsigned-signed\.apk$/.apk/' | sed 's/-signed\.apk$/.apk/')
-            mv "$file" "$new_name"
+            mv -v "$file" app/build/outputs/apk/tempus/release/poordooytify-release.apk
+            break
           done
 
       - name: Rename Mapping Files
         run: |
-          mv -v app/build/outputs/mapping/tempusRelease/mapping.txt app/build/outputs/mapping/tempusRelease/mapping_Tempus.txt
+          mv -v app/build/outputs/mapping/tempusRelease/mapping.txt app/build/outputs/mapping/tempusRelease/mapping_Poordooytify.txt
 
       - name: Compress Mapping Files
         run: |
-          gzip -v app/build/outputs/mapping/tempusRelease/mapping_Tempus.txt
+          gzip -v app/build/outputs/mapping/tempusRelease/mapping_Poordooytify.txt
 
       - name: Create Release
         id: create_release
@@ -77,5 +76,5 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            app/build/outputs/apk/tempus/release/*-release.apk
-            app/build/outputs/mapping/tempusRelease/mapping_Tempus.txt.gz
+            app/build/outputs/apk/tempus/release/poordooytify-release.apk
+            app/build/outputs/mapping/tempusRelease/mapping_Poordooytify.txt.gz
