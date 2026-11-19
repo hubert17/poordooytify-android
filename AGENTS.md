@@ -165,8 +165,10 @@ This repository (`hubert17/poordooytify-android`) is a fork of `eddyizm/tempus` 
    - Keep `Github.java` pointing to `hubert17/poordooytify-android`, `SubsonicPreferences.java` `clientName = "Poordooytify"`, `settings_github_link` in `strings.xml`, and no `LoginActivity` launcher shortcut in `MainActivity.java`.
 3. **Preserve Tempus-Only CI Workflows**:
    - Keep `.github/workflows/github_release.yml` and `.github/workflows/github_prerelease.yml` configured to build, sign, and publish **only** the `tempus` flavor (Android Auto + Chromecast support), without re-introducing `degoogled` or `play` workflow steps.
-4. **Flag & Ask on Conflicts/Overwrites**:
-   - Never silently overwrite fork customizations (`app_name`, `default_server_url`, `settings_github_link`, `tempus` `applicationId`, the icon/logo drawables listed above, `fragment_login.xml`, `LoginFragment.java`, `Github.java`, `SubsonicPreferences.java`, `MainActivity.java` shortcut removal, `.github/workflows/github_release.yml`, `.github/workflows/github_prerelease.yml`, or `AGENTS.md` itself).
+4. **Preserve Fork UI Defaults**:
+   - Keep `podcast_section_visibility` and `radio_section_visibility` defaulted to `false` in `app/src/main/java/com/eddyizm/tempus/util/Preferences.kt` and `app/src/main/res/xml/global_preferences.xml` so the Home screen starts Music-only with the tab bar hidden.
+5. **Flag & Ask on Conflicts/Overwrites**:
+   - Never silently overwrite fork customizations (`app_name`, `default_server_url`, `settings_github_link`, `tempus` `applicationId`, the icon/logo drawables listed above, `fragment_login.xml`, `LoginFragment.java`, `Github.java`, `SubsonicPreferences.java`, `MainActivity.java` shortcut removal, `Preferences.kt` / `global_preferences.xml` Podcast & Radio defaults, `.github/workflows/github_release.yml`, `.github/workflows/github_prerelease.yml`, or `AGENTS.md` itself).
    - If an `upstream` sync introduces a merge conflict or upstream change affecting any of these files (or `app/build.gradle` / `strings.xml`), **stop, flag the affected lines, and ask the user** how to proceed before finalizing the merge.
 
 ## Git Push & Release Tag Workflow (Poordooytify)

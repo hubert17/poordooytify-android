@@ -778,7 +778,7 @@ object Preferences {
 
     @JvmStatic
     fun isPodcastSectionVisible(): Boolean {
-        return App.getInstance().preferences.getBoolean(PODCAST_SECTION_VISIBILITY, true)
+        return App.getInstance().preferences.getBoolean(PODCAST_SECTION_VISIBILITY, false)
     }
 
     @JvmStatic
@@ -788,7 +788,7 @@ object Preferences {
 
     @JvmStatic
     fun isRadioSectionVisible(): Boolean {
-        return App.getInstance().preferences.getBoolean(RADIO_SECTION_VISIBILITY, true)
+        return App.getInstance().preferences.getBoolean(RADIO_SECTION_VISIBILITY, false)
     }
 
     @JvmStatic
